@@ -1,0 +1,7 @@
+#ignore everything
+*
+
+#but not these file & directories
+!.gitignore
+!Commande_Serrure.xpr
+!/Commande_Serrure.srcs
