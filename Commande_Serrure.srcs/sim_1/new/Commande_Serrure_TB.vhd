@@ -21,6 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use std.textio.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -39,12 +40,12 @@ architecture Behavioral of Commande_Serrure_TB is
     constant ClockFrequency : integer := 100e6; -- 100 MHz
     constant ClockPeriod    : time    := 1000 ms / ClockFrequency;
     component SourceCode
-        port ( code : in string(1 to 4);
+        port ( code : in string;
             CLK, enter : in std_logic;
             OP, VV, VR, AA: out std_logic);
     end component;
     
-    signal code_in : string(1 to 4);
+    signal code_in : string(4 downto 1);
     signal clock : std_logic := '0';
     signal Ent: std_logic;
     signal Ouverture : std_logic;
@@ -59,17 +60,28 @@ begin
     clock <= not clock after ClockPeriod / 2;
     
     process
+    
+    file buff_in : text open read_mode is "/home/salmag98/Vivado/Commande_Serrure/in.txt";
+    file buff_out : text open write_mode is "/home/salmag98/Vivado/Commande_Serrure/out.txt";
+    variable row : line;
+    variable code_in : string(4 downto 1);
+    
     begin
         
-        code_in <= "ABCD";
+        readline(buff_in,row);
+        read(row, code_in);
         wait for 50ns;
-        code_in <= "AF10";
+        readline(buff_in,row);
+        read(row, code_in);
         wait for 50ns;    
-        code_in <= "HHFH";
+        readline(buff_in,row);
+        read(row, code_in);
         wait for 50ns;   
-        code_in <= "AF10";
+        readline(buff_in,row);
+        read(row, code_in);
         wait for 50ns;   
-        code_in <= "AJD0";
+        readline(buff_in,row);
+        read(row, code_in);
         wait for 50ns;      
         
     end process;

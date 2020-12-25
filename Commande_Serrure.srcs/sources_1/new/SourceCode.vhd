@@ -33,7 +33,7 @@ use std.textio.all;
 --use UNISIM.VComponents.all;
 
 entity SourceCode is
-    Port ( code : in string(1 to 4);
+    Port ( code : in string;
            CLK : in STD_LOGIC;
            enter : in STD_LOGIC;
            OP : out STD_LOGIC;
@@ -61,12 +61,10 @@ signal cnt : integer := 0;
 begin
     process(CLK) is
     
-    file buff_in : text;
-    file buff_out : text;
-    --variable code : string(0 to 4);
-    variable count : integer := 4;
+    
+    --variable count : integer := 4;
     variable limite_tentatives : integer := 3;
-    variable code_correct : string(1 to 4) := "AF10"; 
+    variable code_correct : string(4 downto 1) := "AF10"; 
     
     begin
     
@@ -80,7 +78,6 @@ begin
                 when E0 =>
                     etat <= E1;
                 when E1 =>
-                    --readline(buff_in,code);
                     etat <= E2;
                 when E2 =>
                     if(code = code_correct) then etat <= E3;
