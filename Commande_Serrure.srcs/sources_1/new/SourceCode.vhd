@@ -21,7 +21,6 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use std.textio.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -34,6 +33,9 @@ use std.textio.all;
 
 entity SourceCode is
     Port ( code : in string;
+           e1e : out STD_LOGIC := '0';
+           e3e : out STD_LOGIC := '0';
+           e5e : out STD_LOGIC := '0';
            CLK : in STD_LOGIC;
            enter : in STD_LOGIC;
            OP : out STD_LOGIC;
@@ -78,7 +80,9 @@ begin
                 when E0 =>
                     etat <= E1;
                 when E1 =>
+                    if(enter = '1') then
                     etat <= E2;
+                    end if;
                 when E2 =>
                     if(code = code_correct) then etat <= E3;
                     else etat <= E5;
@@ -114,13 +118,23 @@ begin
             VR <= '0';
             cnt <= 0;
             OP <= '0';
+        when E1 =>
+            e1e <= '1';
+        when E2 =>
+            e1e <= '0';
         when E3 => 
+            e3e <= '1';
             VV <= '1';
             VR <= '0';
             OP <= '1';
+        when E4 =>
+            e3e <= '0';
         when E5 =>
+            e5e <= '1';
             VR <= '1';
-            cnt <= cnt+1;    
+            cnt <= cnt+1; 
+        when E6 =>
+            e5e <= '0';
         when others =>
         end case;
     end process;

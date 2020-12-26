@@ -42,10 +42,13 @@ architecture Behavioral of Commande_Serrure_TB is
     component SourceCode
         port ( code : in string;
             CLK, enter : in std_logic;
-            OP, VV, VR, AA: out std_logic);
+            e1e, e3e, e5e, OP, VV, VR, AA: out std_logic);
     end component;
     
     signal code_in : string(4 downto 1);
+    signal entered_1 : std_logic;
+    signal entered_3 : std_logic;
+    signal entered_5 : std_logic;
     signal clock : std_logic := '0';
     signal Ent: std_logic;
     signal Ouverture : std_logic;
@@ -55,7 +58,7 @@ architecture Behavioral of Commande_Serrure_TB is
         
 begin
     
-    UUT: SourceCode port map (code => code_in, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
+    UUT: SourceCode port map (code => code_in, e1e => entered_1, e3e => entered_3, e5e => entered_5, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
     
     clock <= not clock after ClockPeriod / 2;
     
@@ -63,31 +66,38 @@ begin
     
     file buff_in : text open read_mode is "/home/salmag98/Vivado/Commande_Serrure/in.txt";
     file buff_out : text open write_mode is "/home/salmag98/Vivado/Commande_Serrure/out.txt";
-    variable row : line;
+    variable v_ILINE     :   line;
+    variable v_OLINE     :   line;
     variable codein : string(4 downto 1);
     
     begin
         
-        readline(buff_in,row);
-        read(row, codein);
+        while not endfile(buff_in) loop
+        wait until rising_edge(entered_1);
+        readline(buff_in,V_ILINE);
+        read(v_ILINE, codein);
         code_in <= codein;
-        wait for 50ns;
-        readline(buff_in,row);
-        read(row, codein);
-        code_in <= codein;
-        wait for 50ns;    
-        readline(buff_in,row);
-        read(row, codein);
-        code_in <= codein;
-        wait for 50ns;   
-        readline(buff_in,row);
-        read(row, codein);
-        code_in <= codein;
-        wait for 50ns;   
-        readline(buff_in,row);
-        read(row, codein);
-        code_in <= codein;
-        wait for 50ns;      
+        Ent <= '1';
+        
+        --wait for ClockPeriod;
+        --Ent <= '0';
+        
+        wait until rising_edge(entered_3) or rising_edge(entered_5);
+        Ent <= '0';
+        
+        if(entered_3 = '1') then
+        write(V_OLINE, codein & string'(" matching code"));
+        writeline(buff_out, V_OLINE);
+        end if;
+        
+        if(entered_5 = '1') then
+        --wait until rising_edge(entered_5);
+        write(V_OLINE, codein & string'(" uncorrect code"));
+        writeline(buff_out, V_OLINE);
+        end if;
+        
+        end loop;
+              
         
         file_close(buff_in);
         file_close(buff_out);
