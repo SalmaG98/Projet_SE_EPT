@@ -64,25 +64,33 @@ begin
     file buff_in : text open read_mode is "/home/salmag98/Vivado/Commande_Serrure/in.txt";
     file buff_out : text open write_mode is "/home/salmag98/Vivado/Commande_Serrure/out.txt";
     variable row : line;
-    variable code_in : string(4 downto 1);
+    variable codein : string(4 downto 1);
     
     begin
         
         readline(buff_in,row);
-        read(row, code_in);
+        read(row, codein);
+        code_in <= codein;
         wait for 50ns;
         readline(buff_in,row);
-        read(row, code_in);
+        read(row, codein);
+        code_in <= codein;
         wait for 50ns;    
         readline(buff_in,row);
-        read(row, code_in);
+        read(row, codein);
+        code_in <= codein;
         wait for 50ns;   
         readline(buff_in,row);
-        read(row, code_in);
+        read(row, codein);
+        code_in <= codein;
         wait for 50ns;   
         readline(buff_in,row);
-        read(row, code_in);
+        read(row, codein);
+        code_in <= codein;
         wait for 50ns;      
+        
+        file_close(buff_in);
+        file_close(buff_out);
         
     end process;
 
