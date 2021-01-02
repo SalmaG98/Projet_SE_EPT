@@ -33,9 +33,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity SourceCode is
     Port ( code : in string;
+           numero_tel : in string;
+           code_debloc : in string;
+           code_debloc_verif : inout integer;
            e1e : out STD_LOGIC := '0';
            e3e : out STD_LOGIC := '0';
            e5e : out STD_LOGIC := '0';
+           e7e : out STD_LOGIC := '0';
+           e9e : out STD_LOGIC := '0';
+           e10e : out STD_LOGIC := '0';
+           e11e : out STD_LOGIC := '0';
+           e12e : out STD_LOGIC := '0';
            CLK : in STD_LOGIC;
            enter : in STD_LOGIC;
            OP : out STD_LOGIC;
@@ -53,20 +61,23 @@ architecture Behavioral of SourceCode is
 
 --constant reset_delay : delay_type := 100 ms / clock_period - 1;
 
-type type_etat is (E0, E1, E2, E3, E4, E5, E6, E7);
+type type_etat is (E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13);
 --, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13
 signal etat : type_etat := E0;
 signal delay : integer := 3;
 signal delay_prec : integer := 0;
 signal cnt : integer := 0;
+signal code_verification : integer := 9988;
 
 begin
     process(CLK) is
     
     
     --variable count : integer := 4;
-    variable limite_tentatives : integer := 3;
+    variable limite_tentatives : integer := 5;
     variable code_correct : string(4 downto 1) := "AF10"; 
+    variable numero_correct : string(8 downto 1) := "22222222";
+    
     
     begin
     
@@ -97,14 +108,31 @@ begin
                     --end if;
                 when E5 =>
                     if(cnt < limite_tentatives) then etat <= E6;
-                    else etat <= E0;
+                    else etat <= E8;
                     end if;
                 when E6 =>
                     if(cnt = limite_tentatives-1) then etat <= E7;
                     else etat <= E1;
                     end if;
                 when E7 =>
-                    etat <= E1;         
+                    etat <= E1;
+                when E8 => 
+                    etat <= E9;
+                when E9 =>
+                    if(numero_tel = numero_correct) then etat <= E11;
+                    else etat <= E10;
+                    end if;
+                when E10 =>
+                    etat <= E11;
+                when E11 =>
+                    if(enter = '1') then etat <= E12;
+                    end if;
+                when E12 =>
+                    if(code_debloc = integer'image(code_debloc_verif)) then etat <= E13;
+                    else etat <= E12;
+                    end if;
+                when E13 =>
+                    etat <= E0;
             end case;
         end if;
     end process;
@@ -119,6 +147,7 @@ begin
             cnt <= 0;
             OP <= '0';
         when E1 =>
+            e7e <= '0';
             e1e <= '1';
         when E2 =>
             e1e <= '0';
@@ -135,6 +164,27 @@ begin
             cnt <= cnt+1; 
         when E6 =>
             e5e <= '0';
+        when E7 =>
+            e7e <= '1';
+        when E8 =>
+            e5e <= '0';
+            AA <= '1';
+        when E9 =>
+            e9e <= '1';
+        when E10 =>
+            e10e <= '1';
+            e9e <= '0';
+        when E11 =>
+            code_debloc_verif <= code_verification;
+            e9e <= '0';
+            e10e <= '0';
+            e11e <= '1';
+        when E12 =>
+            e11e <= '0';
+            e12e <= '1';
+        when E13 =>
+            e12e <= '0';
+            AA <= '0';
         when others =>
         end case;
     end process;
