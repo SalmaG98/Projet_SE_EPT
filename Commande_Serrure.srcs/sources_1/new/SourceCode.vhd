@@ -32,24 +32,30 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity SourceCode is
-    Port ( code : in string;
-           numero_tel : in string;
-           code_debloc : in string;
-           code_debloc_verif : inout integer;
+    Port ( code : in string(4 downto 1);
+           numero_tel : in string(8 downto 1);
+           code_debloc : in string(4 downto 1);
+           code_debloc_verif : inout integer := 0;
+           e0e : out STD_LOGIC := '0';
            e1e : out STD_LOGIC := '0';
+           e2e : out STD_LOGIC := '0';
            e3e : out STD_LOGIC := '0';
+           e4e : out STD_LOGIC := '0';
            e5e : out STD_LOGIC := '0';
+           e6e : out STD_LOGIC := '0';
            e7e : out STD_LOGIC := '0';
+           e8e : out STD_LOGIC := '0';
            e9e : out STD_LOGIC := '0';
            e10e : out STD_LOGIC := '0';
            e11e : out STD_LOGIC := '0';
            e12e : out STD_LOGIC := '0';
-           CLK : in STD_LOGIC;
-           enter : in STD_LOGIC;
-           OP : out STD_LOGIC;
-           VV : out STD_LOGIC;
-           VR : out STD_LOGIC;
-           AA : out STD_LOGIC);
+           e13e : out STD_LOGIC := '0';
+           CLK : in STD_LOGIC := '0';
+           enter : in STD_LOGIC := '0';
+           OP : out STD_LOGIC := '0';
+           VV : out STD_LOGIC := '0';
+           VR : out STD_LOGIC := '0';
+           AA : out STD_LOGIC := '0');
 end SourceCode;
 
 architecture Behavioral of SourceCode is
@@ -67,6 +73,7 @@ signal etat : type_etat := E0;
 signal delay : integer := 3;
 signal delay_prec : integer := 0;
 signal cnt : integer := 0;
+signal limite_tentatives : integer := 2;
 signal code_verification : integer := 9988;
 
 begin
@@ -74,7 +81,6 @@ begin
     
     
     --variable count : integer := 4;
-    variable limite_tentatives : integer := 5;
     variable code_correct : string(4 downto 1) := "AF10"; 
     variable numero_correct : string(8 downto 1) := "22222222";
     
@@ -129,9 +135,11 @@ begin
                     end if;
                 when E12 =>
                     if(code_debloc = integer'image(code_debloc_verif)) then etat <= E13;
-                    else etat <= E12;
+                    else etat <= E8;
                     end if;
                 when E13 =>
+                    etat <= E0;
+                when others =>
                     etat <= E0;
             end case;
         end if;
@@ -142,35 +150,50 @@ begin
         case etat is
         
         when E0 =>
+            e0e <= '1';
+            e4e <= '0';
+            e13e <= '0';
             VV <= '0';
             VR <= '0';
             cnt <= 0;
+            limite_tentatives <= 2;
             OP <= '0';
         when E1 =>
+            e0e <= '0';
+            e6e <= '0';
             e7e <= '0';
             e1e <= '1';
         when E2 =>
             e1e <= '0';
+            e2e <= '1';
         when E3 => 
+            e2e <= '0';
             e3e <= '1';
             VV <= '1';
             VR <= '0';
             OP <= '1';
         when E4 =>
+            e4e <= '1';
             e3e <= '0';
         when E5 =>
+            e2e <= '0';
             e5e <= '1';
             VR <= '1';
             cnt <= cnt+1; 
         when E6 =>
+            e6e <= '1';
             e5e <= '0';
         when E7 =>
             e7e <= '1';
+            e6e <= '0';
         when E8 =>
             e5e <= '0';
+            e8e <= '1';
+            e12e <= '0';
             AA <= '1';
         when E9 =>
             e9e <= '1';
+            e8e <= '0';
         when E10 =>
             e10e <= '1';
             e9e <= '0';
@@ -184,6 +207,7 @@ begin
             e12e <= '1';
         when E13 =>
             e12e <= '0';
+            e13e <= '1';
             AA <= '0';
         when others =>
         end case;

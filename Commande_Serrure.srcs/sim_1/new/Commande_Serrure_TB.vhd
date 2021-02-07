@@ -44,21 +44,27 @@ architecture Behavioral of Commande_Serrure_TB is
             code_debloc : in string;
             code_debloc_verif : inout integer;
             CLK, enter : in std_logic;
-            e1e, e3e, e5e, e7e, e9e, e10e, e11e, e12e, OP, VV, VR, AA: out std_logic);
+            e0e,e1e, e2e, e3e, e4e, e5e, e6e, e7e, e8e, e9e, e10e, e11e, e12e, e13e, OP, VV, VR, AA: out std_logic);
     end component;
     
     signal code_in : string(4 downto 1);
     signal code_d : string(4 downto 1);
     signal code_debloc_v : integer;
     signal num_tel : string(8 downto 1);
+    signal entered_0 : std_logic;
     signal entered_1 : std_logic;
+    signal entered_2 : std_logic;
     signal entered_3 : std_logic;
+    signal entered_4 : std_logic;
     signal entered_5 : std_logic;
+    signal entered_6 : std_logic;
     signal entered_7 : std_logic;
+    signal entered_8 : std_logic;
     signal entered_9 : std_logic;
     signal entered_10 : std_logic;
     signal entered_11 : std_logic;
     signal entered_12 : std_logic;
+    signal entered_13 : std_logic;
     signal clock : std_logic := '0';
     signal Ent: std_logic;
     signal Ouverture : std_logic;
@@ -68,7 +74,7 @@ architecture Behavioral of Commande_Serrure_TB is
         
 begin
     
-    UUT: SourceCode port map (code => code_in, e1e => entered_1, e3e => entered_3, e5e => entered_5, e7e => entered_7, e9e => entered_9, e10e => entered_10, e11e => entered_11, e12e => entered_12, numero_tel => num_tel, code_debloc => code_d, code_debloc_verif => code_debloc_v, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
+    UUT: SourceCode port map (code => code_in, e0e => entered_0, e1e => entered_1, e2e => entered_2, e3e => entered_3, e4e => entered_4,  e5e => entered_5, e6e => entered_6, e7e => entered_7, e8e => entered_8, e9e => entered_9, e10e => entered_10, e11e => entered_11, e12e => entered_12, e13e => entered_13, numero_tel => num_tel, code_debloc => code_d, code_debloc_verif => code_debloc_v, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
     
     clock <= not clock after ClockPeriod / 2;
     
@@ -84,6 +90,7 @@ begin
     variable v_OLINE     :   line;
     variable codein : string(4 downto 1);
     variable debloc : string(4 downto 1);
+    variable num : string(8 downto 1);
     
     begin
         
@@ -102,42 +109,75 @@ begin
         Ent <= '0';
         
         if(entered_3 = '1') then
+        
         write(v_OLINE, codein & string'(" matching code"));
         writeline(buff_out, v_OLINE);
+        
         end if;
         
         if(entered_5 = '1') then
-        --wait until rising_edge(entered_5);
+        
         write(v_OLINE, codein & string'(" uncorrect code"));
         writeline(buff_out, v_OLINE);
         
-        wait until rising_edge(entered_7);
+        wait until rising_edge(entered_6) or rising_edge(entered_8);
+        
+        if(entered_6 = '1') then
+        
+        wait until rising_edge(entered_7) or rising_edge(clock);
         write(v_OLINE, string'("Dernière tentative!!"));
         writeline(log, v_OLINE);
+        
+        end if;
+        
+        if(entered_8 = '1') then
         
         wait until rising_edge(entered_9);
         write(v_OLINE, string'("Entrer numéro de telephone de securité:"));
         writeline(log, v_OLINE);
         
+        readline(buff_num,v_ILINE);
+        read(v_ILINE, num);
+        num_tel <= num;
+        
         wait until rising_edge(entered_10) or rising_edge(entered_11);
         
         if(entered_10 = '1') then
+        
         write(v_OLINE, string'("Alerte Intrusion!!"));
         writeline(log, v_OLINE);
-        end if;
+        
+        wait until rising_edge(entered_11);
         
         if(entered_11 = '1') then
+        
+        Ent <= '1';
         write(v_OLINE, string'("Entrer code:"));
         writeline(log, v_OLINE);
         readline(buff_codein,v_ILINE);
         read(v_ILINE, debloc);
         code_d <= debloc;
+        
+        end if;
+        
+        end if;
+        
+        if(entered_11 = '1') then
+        
         Ent <= '1';
+        write(v_OLINE, string'("Entrer code:"));
+        writeline(log, v_OLINE);
+        readline(buff_codein,v_ILINE);
+        read(v_ILINE, debloc);
+        code_d <= debloc;
+        
         end if;
         
         
         wait until rising_edge(entered_12);
         Ent <= '0';
+        
+        end if;
         end if;
         end loop;
               
