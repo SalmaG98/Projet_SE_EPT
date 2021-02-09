@@ -22,15 +22,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use std.textio.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity Commande_Serrure_TB is
 --  Port ( );
@@ -42,43 +34,43 @@ architecture Behavioral of Commande_Serrure_TB is
     component SourceCode
         port ( code, numero_tel : in string;
             code_debloc : in string;
-            code_debloc_verif : inout integer;
+            code_debloc_verif : buffer integer;
+            cur_state : out integer;
             CLK, enter : in std_logic;
-            e0e,e1e, e2e, e3e, e4e, e5e, e6e, e7e, e8e, e9e, e10e, e11e, e12e, e13e, OP, VV, VR, AA: out std_logic);
+            OP, VV, VR, AA: out std_logic);
     end component;
+
+--function switching outputs depending on whether the input condition is verified
+--used for the value of Ent signal    
+function tern(cond : boolean; res_true, res_false : std_logic) return std_logic is
+begin
+  if cond then
+    return res_true;
+  else
+    return res_false;
+  end if;
+end function;
+    
     
     signal code_in : string(4 downto 1);
     signal code_d : string(4 downto 1);
     signal code_debloc_v : integer;
     signal num_tel : string(8 downto 1);
-    signal entered_0 : std_logic;
-    signal entered_1 : std_logic;
-    signal entered_2 : std_logic;
-    signal entered_3 : std_logic;
-    signal entered_4 : std_logic;
-    signal entered_5 : std_logic;
-    signal entered_6 : std_logic;
-    signal entered_7 : std_logic;
-    signal entered_8 : std_logic;
-    signal entered_9 : std_logic;
-    signal entered_10 : std_logic;
-    signal entered_11 : std_logic;
-    signal entered_12 : std_logic;
-    signal entered_13 : std_logic;
+    signal current_state : integer;
     signal clock : std_logic := '0';
-    signal Ent: std_logic;
+    signal Ent: std_logic := '0';
     signal Ouverture : std_logic;
     signal VoyantV : std_logic;
     signal VoyantR : std_logic;
     signal Alarme : std_logic;
         
 begin
-    
-    UUT: SourceCode port map (code => code_in, e0e => entered_0, e1e => entered_1, e2e => entered_2, e3e => entered_3, e4e => entered_4,  e5e => entered_5, e6e => entered_6, e7e => entered_7, e8e => entered_8, e9e => entered_9, e10e => entered_10, e11e => entered_11, e12e => entered_12, e13e => entered_13, numero_tel => num_tel, code_debloc => code_d, code_debloc_verif => code_debloc_v, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
+    -- e0e => entered_0, e1e => entered_1, e2e => entered_2, e3e => entered_3, e4e => entered_4,  e5e => entered_5, e6e => entered_6, e7e => entered_7, e8e => entered_8, e9e => entered_9, e10e => entered_10, e11e => entered_11, e12e => entered_12, e13e => entered_13, 
+    UUT: SourceCode port map (code => code_in, numero_tel => num_tel, code_debloc => code_d, code_debloc_verif => code_debloc_v, cur_state => current_state, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
     
     clock <= not clock after ClockPeriod / 2;
     
-    process
+    process(current_state,clock) is
     
     file buff_in : text open read_mode is "/home/salmag98/Vivado/Commande_Serrure/in.txt";
     file buff_out : text open write_mode is "/home/salmag98/Vivado/Commande_Serrure/out.txt";
@@ -86,104 +78,69 @@ begin
     file buff_codeout : text open write_mode is "/home/salmag98/Vivado/Commande_Serrure/codeVout.txt";
     file buff_codein : text open read_mode is "/home/salmag98/Vivado/Commande_Serrure/codeVin.txt";
     file log : text open write_mode is "/home/salmag98/Vivado/Commande_Serrure/log.txt";
-    variable v_ILINE     :   line;
-    variable v_OLINE     :   line;
+    variable line_in, line_out, line_num, line_codeout, line_codein , line_log    :   line;
+    --variable v_OLINE     :   line;
     variable codein : string(4 downto 1);
     variable debloc : string(4 downto 1);
     variable num : string(8 downto 1);
     
     begin
         
-        while not endfile(buff_in) loop
+        Ent <= tern((current_state = 1) or (current_state = 11), '1', '0');
+        --Ent is HIGH only when state is E1 or E11 and LOW otherwise
         
-        wait until rising_edge(entered_1);
-        readline(buff_in,v_ILINE);
-        read(v_ILINE, codein);
-        code_in <= codein;
-        Ent <= '1';
+        if(rising_edge(clock)) then
         
-        --wait for ClockPeriod;
-        --Ent <= '0';
-        
-        wait until rising_edge(entered_3) or rising_edge(entered_5);
-        Ent <= '0';
-        
-        if(entered_3 = '1') then
-        
-        write(v_OLINE, codein & string'(" matching code"));
-        writeline(buff_out, v_OLINE);
-        
+            case current_state is
+            
+                when 1 =>
+                readline(buff_in,line_in);
+                read(line_in, codein);
+                code_in <= codein;
+                
+                when 3 =>
+                --entered code is correct
+                write(line_out, codein & string'(" matching code"));
+                writeline(buff_out, line_out);
+                
+                when 5 =>
+                --entered code does not match
+                write(line_out, codein & string'(" uncorrect code"));
+                writeline(buff_out, line_out);
+                
+                when 7 =>
+                --Number of tries almost reached.
+                write(line_log, string'("Dernière tentative!!"));
+                writeline(log, line_log);
+                
+                when 9 =>
+                write(line_log, string'("Entrer numéro de telephone de securité:"));
+                writeline(log, line_log);
+                readline(buff_num,line_num);
+                read(line_num, num);
+                num_tel <= num;
+                
+                when 10 =>
+                write(line_log, string'("Alerte Intrusion!!"));
+                writeline(log, line_log);
+                
+                when 11 =>
+                --prompt user for verification code sent on cellphone
+                write(line_log, string'("Entrer code:"));
+                writeline(log, line_log);
+                -- "read" entered code
+                readline(buff_codein,line_codein);
+                read(line_codein, debloc);
+                code_d <= debloc;
+                
+                when others =>
+                null;
+                
+            end case;
         end if;
         
-        if(entered_5 = '1') then
-        
-        write(v_OLINE, codein & string'(" uncorrect code"));
-        writeline(buff_out, v_OLINE);
-        
-        wait until rising_edge(entered_6) or rising_edge(entered_8);
-        
-        if(entered_6 = '1') then
-        
-        wait until rising_edge(entered_7) or rising_edge(clock);
-        write(v_OLINE, string'("Dernière tentative!!"));
-        writeline(log, v_OLINE);
-        
-        end if;
-        
-        if(entered_8 = '1') then
-        
-        wait until rising_edge(entered_9);
-        write(v_OLINE, string'("Entrer numéro de telephone de securité:"));
-        writeline(log, v_OLINE);
-        
-        readline(buff_num,v_ILINE);
-        read(v_ILINE, num);
-        num_tel <= num;
-        
-        wait until rising_edge(entered_10) or rising_edge(entered_11);
-        
-        if(entered_10 = '1') then
-        
-        write(v_OLINE, string'("Alerte Intrusion!!"));
-        writeline(log, v_OLINE);
-        
-        wait until rising_edge(entered_11);
-        
-        if(entered_11 = '1') then
-        
-        Ent <= '1';
-        write(v_OLINE, string'("Entrer code:"));
-        writeline(log, v_OLINE);
-        readline(buff_codein,v_ILINE);
-        read(v_ILINE, debloc);
-        code_d <= debloc;
-        
-        end if;
-        
-        end if;
-        
-        if(entered_11 = '1') then
-        
-        Ent <= '1';
-        write(v_OLINE, string'("Entrer code:"));
-        writeline(log, v_OLINE);
-        readline(buff_codein,v_ILINE);
-        read(v_ILINE, debloc);
-        code_d <= debloc;
-        
-        end if;
-        
-        
-        wait until rising_edge(entered_12);
-        Ent <= '0';
-        
-        end if;
-        end if;
-        end loop;
-              
-        
-        file_close(buff_in);
-        file_close(buff_out);
+        --file_close(buff_in);
+        --file_close(buff_out);
         
     end process;
 
