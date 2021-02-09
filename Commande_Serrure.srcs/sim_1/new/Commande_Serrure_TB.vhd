@@ -35,7 +35,7 @@ architecture Behavioral of Commande_Serrure_TB is
         port ( code, numero_tel : in string;
             code_debloc : in string;
             code_debloc_verif : buffer integer;
-            cur_state : out integer;
+            cur_state, Ntries : out integer;
             CLK, enter : in std_logic;
             OP, VV, VR, AA: out std_logic);
     end component;
@@ -57,6 +57,7 @@ end function;
     signal code_debloc_v : integer;
     signal num_tel : string(8 downto 1);
     signal current_state : integer;
+    signal Tries_Remaining : integer;
     signal clock : std_logic := '0';
     signal Ent: std_logic := '0';
     signal Ouverture : std_logic;
@@ -66,7 +67,7 @@ end function;
         
 begin
     -- e0e => entered_0, e1e => entered_1, e2e => entered_2, e3e => entered_3, e4e => entered_4,  e5e => entered_5, e6e => entered_6, e7e => entered_7, e8e => entered_8, e9e => entered_9, e10e => entered_10, e11e => entered_11, e12e => entered_12, e13e => entered_13, 
-    UUT: SourceCode port map (code => code_in, numero_tel => num_tel, code_debloc => code_d, code_debloc_verif => code_debloc_v, cur_state => current_state, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
+    UUT: SourceCode port map (code => code_in, numero_tel => num_tel, code_debloc => code_d, code_debloc_verif => code_debloc_v, cur_state => current_state, Ntries => Tries_Remaining, CLK => clock, enter => Ent, OP => Ouverture, VV => VoyantV, VR => VoyantR, AA => Alarme);
     
     clock <= not clock after ClockPeriod / 2;
     
@@ -83,10 +84,11 @@ begin
     variable codein : string(4 downto 1);
     variable debloc : string(4 downto 1);
     variable num : string(8 downto 1);
+    variable v_TIME : time := 0ns;
     
     begin
         
-        Ent <= tern((current_state = 1) or (current_state = 11), '1', '0');
+        Ent <= tern((current_state = 1) or (current_state = 12), '1', '0');
         --Ent is HIGH only when state is E1 or E11 and LOW otherwise
         
         if(rising_edge(clock)) then
@@ -100,33 +102,38 @@ begin
                 
                 when 3 =>
                 --entered code is correct
-                write(line_out, codein & string'(" matching code"));
+                write(line_out, time'image(now - v_TIME) & string'(" ") & codein & string'(" matching code"));
                 writeline(buff_out, line_out);
                 
                 when 5 =>
                 --entered code does not match
-                write(line_out, codein & string'(" uncorrect code"));
+                write(line_out, time'image(now - v_TIME) & string'(" ") & codein & string'(" uncorrect code"));
                 writeline(buff_out, line_out);
                 
                 when 7 =>
                 --Number of tries almost reached.
-                write(line_log, string'("Dernière tentative!!"));
+                write(line_log, time'image(now - v_TIME) & string'(" Dernière tentative!!"));
                 writeline(log, line_log);
                 
                 when 9 =>
-                write(line_log, string'("Entrer numéro de telephone de securité:"));
+                write(line_log, time'image(now - v_TIME) & string'(" Entrer numéro de telephone de securité:"));
                 writeline(log, line_log);
                 readline(buff_num,line_num);
                 read(line_num, num);
                 num_tel <= num;
                 
                 when 10 =>
-                write(line_log, string'("Alerte Intrusion!!"));
+                write(line_log, time'image(now - v_TIME) & string'(" Alerte Intrusion!!"));
                 writeline(log, line_log);
                 
                 when 11 =>
+                --send verification code
+                write(line_codeout, time'image(now - v_TIME) & string'(" ") & integer'image(code_debloc_v));
+                writeline(buff_codeout, line_codeout);
+                
+                when 12 =>
                 --prompt user for verification code sent on cellphone
-                write(line_log, string'("Entrer code:"));
+                write(line_log, time'image(now - v_TIME) & string'(" Entrer code:"));
                 writeline(log, line_log);
                 -- "read" entered code
                 readline(buff_codein,line_codein);

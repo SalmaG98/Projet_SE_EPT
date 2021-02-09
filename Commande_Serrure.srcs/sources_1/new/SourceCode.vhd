@@ -37,20 +37,7 @@ entity SourceCode is
            code_debloc : in string(4 downto 1);
            code_debloc_verif : buffer integer := 0;
            cur_state : out integer := 0; --state id raging from 0 to 13 included
---           e0e : out STD_LOGIC := '0';
---           e1e : out STD_LOGIC := '0';
---           e2e : out STD_LOGIC := '0';
---           e3e : out STD_LOGIC := '0';
---           e4e : out STD_LOGIC := '0';
---           e5e : out STD_LOGIC := '0';
---           e6e : out STD_LOGIC := '0';
---           e7e : out STD_LOGIC := '0';
---           e8e : out STD_LOGIC := '0';
---           e9e : out STD_LOGIC := '0';
---           e10e : out STD_LOGIC := '0';
---           e11e : out STD_LOGIC := '0';
---           e12e : out STD_LOGIC := '0';
---           e13e : out STD_LOGIC := '0';
+           Ntries : out integer := 3;
            CLK : in STD_LOGIC := '0';
            enter : in STD_LOGIC := '0';
            OP : out STD_LOGIC := '0';
@@ -94,12 +81,13 @@ begin
                 when E3 =>
                     etat <= E4;
                 when E4 =>
-                    --if (delay < 5) then
-                    --delay <= delay + 1;
-                    --else
-                    --delay <= 0;
+                    --hold lock open for 5 clk periods
+                    if (delay < 4) then
+                    delay <= delay + 1;
+                    else
+                    delay <= 0;
                     etat <= E0;
-                    --end if;
+                    end if;
                 when E5 =>
                     if(cnt < limite_tentatives) then etat <= E6;
                     else etat <= E8;
@@ -119,15 +107,15 @@ begin
                 when E10 =>
                     etat <= E11;
                 when E11 =>
-                    if(enter = '1') then 
                     etat <= E12;
-                    end if;
                 when E12 =>
-                    if(code_debloc = integer'image(code_debloc_verif)) then etat <= E13;
-                    else etat <= E8;
+                    if(enter = '1') then 
+                    etat <= E13;
                     end if;
                 when E13 =>
-                    etat <= E0;
+                    if(code_debloc = integer'image(code_debloc_verif)) then etat <= E0;
+                    else etat <= E8;
+                    end if;
                     
             end case;
         end if;
@@ -135,7 +123,10 @@ begin
     
     process(etat)
     begin
+    
         cur_state <= type_etat'pos(etat);
+        Ntries <= limite_tentatives - cnt;
+        
         case etat is
         
             when E0 =>
@@ -144,6 +135,7 @@ begin
                 cnt <= 0;
                 limite_tentatives <= 3;
                 OP <= '0';
+                AA <= '0';
                 
             when E3 => 
                 VV <= '1';
@@ -159,9 +151,6 @@ begin
                 
             when E11 =>
                 code_debloc_verif <= code_verification;
-                
-            when E13 =>
-                AA <= '0';
                 
             when others => null;
             
