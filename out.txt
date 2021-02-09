@@ -1,15 +1,13 @@
-AF10 matching code
-ABCD uncorrect code
-HFHH uncorrect code
-JJJJ uncorrect code
-AF10 matching code
-HHFH uncorrect code
-AF10 matching code
-AJD0 uncorrect code
-1234 uncorrect code
-DKLF uncorrect code
-KDKK uncorrect code
-AF10 matching code
-DDJE uncorrect code
-EFK5 uncorrect code
-GF85 uncorrect code
+35000 ps AF10 matching code
+125000 ps ABCD uncorrect code
+165000 ps HFHH uncorrect code
+215000 ps JJJJ uncorrect code
+315000 ps AF10 matching code
+405000 ps HHFH uncorrect code
+445000 ps AF10 matching code
+535000 ps AJD0 uncorrect code
+575000 ps 1234 uncorrect code
+625000 ps DKLF uncorrect code
+845000 ps KDKK uncorrect code
+885000 ps AF10 matching code
+975000 ps DDJE uncorrect code
