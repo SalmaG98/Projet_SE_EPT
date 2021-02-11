@@ -5,5 +5,7 @@
 #but not these file & directories
 !.gitignore
 !Commande_Serrure.xpr
-!*.txt
+!in.txt
+!codeVin.txt
+!num.txt
 !/Commande_Serrure.srcs
