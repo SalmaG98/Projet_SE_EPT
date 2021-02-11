@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------------
 -- Company: 
--- Engineer: 
+-- Engineer: Salma Galaaoui & Abdessalem Achour
 -- 
 -- Create Date: 12/23/2020 09:53:19 PM
 -- Design Name: 
@@ -133,7 +133,6 @@ begin
                 VV <= '0';
                 VR <= '0';
                 cnt <= 0;
-                limite_tentatives <= 3;
                 OP <= '0';
                 AA <= '0';
                 
